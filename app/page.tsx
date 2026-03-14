@@ -85,16 +85,15 @@ export default function Home() {
         <div className="flex flex-wrap items-center justify-end gap-2 sm:gap-3">
           <button
             onClick={toggle}
-            className="shrink-0 p-2 rounded-lg border transition hover:scale-105 hover:shadow-md"
-            style={{
-              background: "var(--card)",
-              borderColor: "var(--border)",
-              boxShadow: "0 0 12px var(--card-2)",
-            }}
+            className="theme-toggle shrink-0 border"
+            data-theme-state={theme}
             aria-label="Toggle theme"
             title="Toggle theme"
+            type="button"
           >
-            {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+            <span className="theme-toggle-icon" data-theme-state={theme} aria-hidden="true">
+              {theme === "light" ? <Moon size={18} /> : <Sun size={18} />}
+            </span>
           </button>
 
           <button

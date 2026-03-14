@@ -238,6 +238,59 @@ body {
 
 .brand-glow { animation: glowPulse 2.4s ease-in-out infinite; }
 
+.theme-toggle {
+  width: 2.5rem;
+  height: 2.5rem;
+  min-width: 2.5rem;
+  min-height: 2.5rem;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  line-height: 1;
+  background: #050608;
+  border-color: var(--button-neutral-border);
+  color: #ffffff;
+  box-shadow: 0 0 12px var(--card-2);
+  transition: background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease, color 180ms ease;
+}
+
+.theme-toggle:hover {
+  background: #111317;
+}
+
+.theme-toggle:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px color-mix(in srgb, var(--button-neutral-border) 70%, transparent);
+}
+
+.theme-toggle[data-theme-state="dark"] {
+  background: #ffffff;
+  color: #d4a21c;
+}
+
+.theme-toggle[data-theme-state="dark"]:hover {
+  background: #f6f7fb;
+}
+
+.theme-toggle-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.125rem;
+  height: 1.125rem;
+  transition: transform 180ms ease, color 180ms ease;
+  transform: rotate(0deg);
+}
+
+.theme-toggle-icon[data-theme-state="light"] {
+  transform: rotate(-16deg);
+}
+
+.theme-toggle-icon[data-theme-state="dark"] {
+  transform: rotate(16deg);
+}
 .button-neutral {
   background: var(--button-neutral-bg);
   border-color: var(--button-neutral-border);
@@ -606,3 +659,7 @@ body {
     column-count: 3;
   }
 }
+
+
+
+
