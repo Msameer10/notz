@@ -1,6 +1,17 @@
 "use client";
 
-import { GoogleAuthProvider, signInWithPopup, signOut } from "firebase/auth";
+import {
+  GithubAuthProvider,
+  GoogleAuthProvider,
+  browserLocalPersistence,
+  browserSessionPersistence,
+  createUserWithEmailAndPassword,
+  setPersistence,
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  signOut,
+  type AuthError,
+} from "firebase/auth";
 import { onSnapshot, orderBy, query, type QueryDocumentSnapshot } from "firebase/firestore";
 import { Moon, Sun } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -19,6 +30,8 @@ type NoteDocument = {
   color?: unknown;
 };
 
+type AuthAction = "google" | "github" | "email-signin" | "email-signup";
+
 function mapNote(snapshot: QueryDocumentSnapshot<NoteDocument>): NoteCard {
   const data = snapshot.data();
 
@@ -30,6 +43,35 @@ function mapNote(snapshot: QueryDocumentSnapshot<NoteDocument>): NoteCard {
   };
 }
 
+function getAuthErrorMessage(error: unknown): string {
+  const code = (error as AuthError | undefined)?.code;
+
+  switch (code) {
+    case "auth/invalid-credential":
+    case "auth/wrong-password":
+    case "auth/user-not-found":
+      return "That email or password is incorrect.";
+    case "auth/invalid-email":
+      return "Enter a valid email address.";
+    case "auth/email-already-in-use":
+      return "That email is already in use.";
+    case "auth/weak-password":
+      return "Password should be at least 6 characters.";
+    case "auth/account-exists-with-different-credential":
+      return "An account already exists with a different sign-in method.";
+    case "auth/popup-closed-by-user":
+      return "Sign-in was cancelled before it finished.";
+    case "auth/cancelled-popup-request":
+      return "Another sign-in window was already open.";
+    case "auth/popup-blocked":
+      return "Your browser blocked the sign-in popup. Allow popups and try again.";
+    case "auth/operation-not-allowed":
+      return "This sign-in method is not enabled in Firebase yet.";
+    default:
+      return "Authentication failed. Try again.";
+  }
+}
+
 export default function Home() {
   const { user, loading } = useAuth();
   const { theme, toggle } = useTheme();
@@ -37,16 +79,57 @@ export default function Home() {
   const [notes, setNotes] = useState<NoteCard[]>([]);
   const [loadedNotesUserId, setLoadedNotesUserId] = useState<string | null>(null);
   const [boardOpen, setBoardOpen] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [loadingAction, setLoadingAction] = useState<AuthAction | null>(null);
 
-  const login = async () => {
+  const setAuthSessionPersistence = async (rememberDevice: boolean) => {
+    await setPersistence(auth, rememberDevice ? browserLocalPersistence : browserSessionPersistence);
+  };
+
+  const clearAuthError = () => {
+    setAuthError(null);
+  };
+
+  const runAuthAction = async (action: AuthAction, rememberDevice: boolean, operation: () => Promise<unknown>) => {
+    setAuthError(null);
+    setLoadingAction(action);
+
+    try {
+      await setAuthSessionPersistence(rememberDevice);
+      await operation();
+    } catch (error) {
+      setAuthError(getAuthErrorMessage(error));
+    } finally {
+      setLoadingAction(null);
+    }
+  };
+
+  const loginWithGoogle = async (rememberDevice: boolean) => {
     const provider = new GoogleAuthProvider();
-    await signInWithPopup(auth, provider);
+    await runAuthAction("google", rememberDevice, () => signInWithPopup(auth, provider));
+  };
+
+  const loginWithGithub = async (rememberDevice: boolean) => {
+    const provider = new GithubAuthProvider();
+    provider.addScope("read:user");
+    provider.addScope("user:email");
+    await runAuthAction("github", rememberDevice, () => signInWithPopup(auth, provider));
+  };
+
+  const signInWithEmail = async (email: string, password: string, rememberDevice: boolean) => {
+    await runAuthAction("email-signin", rememberDevice, () => signInWithEmailAndPassword(auth, email.trim(), password));
+  };
+
+  const signUpWithEmail = async (email: string, password: string, rememberDevice: boolean) => {
+    await runAuthAction("email-signup", rememberDevice, () => createUserWithEmailAndPassword(auth, email.trim(), password));
   };
 
   useEffect(() => {
     if (!user) {
       return;
     }
+
+    setAuthError(null);
 
     const notesQuery = query(notesCol(user.uid), orderBy("updatedAt", "desc"));
     const unsubscribe = onSnapshot(notesQuery, (snapshot) => {
@@ -62,7 +145,17 @@ export default function Home() {
   }
 
   if (!user) {
-    return <AuthHero onLogin={login} />;
+    return (
+      <AuthHero
+        authError={authError}
+        loadingAction={loadingAction}
+        onClearAuthError={clearAuthError}
+        onEmailSignIn={signInWithEmail}
+        onEmailSignUp={signUpWithEmail}
+        onGithubLogin={loginWithGithub}
+        onGoogleLogin={loginWithGoogle}
+      />
+    );
   }
 
   const onAdd = async () => {

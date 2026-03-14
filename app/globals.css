@@ -1,7 +1,8 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400..900&display=swap');
 @import "tailwindcss";
 :root {
   --font-inter: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
-  --font-cinzel: Georgia, "Times New Roman", serif;
+  --font-cinzel: "Cinzel", Georgia, "Times New Roman", serif;
 
   --bg: #0b0c0f;
   --fg: #f4f6fb;
@@ -656,6 +657,8 @@ body {
     column-count: 3;
   }
 }
+
+
 
 
 
