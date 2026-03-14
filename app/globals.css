@@ -1,5 +1,8 @@
 @import "tailwindcss";
 :root {
+  --font-inter: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --font-cinzel: Georgia, "Times New Roman", serif;
+
   --bg: #0b0c0f;
   --fg: #f4f6fb;
   --muted: rgba(255, 255, 255, 0.65);
@@ -9,6 +12,21 @@
 
   --border: rgba(255, 255, 255, 0.14);
   --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+
+  --button-neutral-bg: var(--card);
+  --button-neutral-border: var(--border);
+  --button-neutral-text: var(--fg);
+  --button-neutral-hover: var(--card-2);
+
+  --button-blue-bg: rgba(37, 99, 235, 0.24);
+  --button-blue-border: rgba(96, 165, 250, 0.34);
+  --button-blue-text: #ffffff;
+  --button-blue-hover: rgba(37, 99, 235, 0.34);
+
+  --button-danger-bg: rgba(220, 38, 38, 0.2);
+  --button-danger-border: rgba(248, 113, 113, 0.34);
+  --button-danger-text: #ffffff;
+  --button-danger-hover: rgba(220, 38, 38, 0.3);
 }
 
 :root[data-theme="light"] {
@@ -21,6 +39,21 @@
 
   --border: rgba(0, 0, 0, 0.14);
   --shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+
+  --button-neutral-bg: rgba(255, 255, 255, 0.92);
+  --button-neutral-border: rgba(15, 23, 42, 0.14);
+  --button-neutral-text: #0f172a;
+  --button-neutral-hover: rgba(15, 23, 42, 0.06);
+
+  --button-blue-bg: #2563eb;
+  --button-blue-border: #2563eb;
+  --button-blue-text: #ffffff;
+  --button-blue-hover: #1d4ed8;
+
+  --button-danger-bg: #dc2626;
+  --button-danger-border: #dc2626;
+  --button-danger-text: #ffffff;
+  --button-danger-hover: #b91c1c;
 }
 
 html,
@@ -62,7 +95,6 @@ body {
   }
 }
 
-/* Utility classes (simple, no Tailwind plugin needed) */
 .anim-fadeUp { animation: fadeUp 700ms ease forwards; }
 .anim-popIn { animation: popIn 700ms ease forwards; }
 .anim-delay-1 { animation-delay: 120ms; opacity: 0; }
@@ -70,3 +102,33 @@ body {
 .anim-delay-3 { animation-delay: 420ms; opacity: 0; }
 
 .brand-glow { animation: glowPulse 2.4s ease-in-out infinite; }
+
+.button-neutral {
+  background: var(--button-neutral-bg);
+  border-color: var(--button-neutral-border);
+  color: var(--button-neutral-text);
+}
+
+.button-neutral:hover {
+  background: var(--button-neutral-hover);
+}
+
+.button-blue {
+  background: var(--button-blue-bg);
+  border-color: var(--button-blue-border);
+  color: var(--button-blue-text);
+}
+
+.button-blue:hover {
+  background: var(--button-blue-hover);
+}
+
+.button-danger {
+  background: var(--button-danger-bg);
+  border-color: var(--button-danger-border);
+  color: var(--button-danger-text);
+}
+
+.button-danger:hover {
+  background: var(--button-danger-hover);
+}
