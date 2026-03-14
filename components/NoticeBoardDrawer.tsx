@@ -80,7 +80,7 @@ export default function NoticeBoardDrawer({
       >
         <div className="board-header border-b px-4 py-4 sm:px-5">
           <div className="board-header-copy min-w-0">
-            <h2 className="text-lg font-semibold sm:text-xl">Notice Board</h2>
+            <h2 className="truncate text-lg font-semibold sm:text-xl">Notice Board</h2>
           </div>
 
           <div className="board-actions">
