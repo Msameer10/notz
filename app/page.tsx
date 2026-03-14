@@ -11,11 +11,12 @@ import NoticeBoardDrawer from "@/components/NoticeBoardDrawer";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
 import { auth } from "@/lib/firebase";
-import { createNote, notesCol } from "@/lib/notes";
+import { createNote, isNoteColor, notesCol } from "@/lib/notes";
 
 type NoteDocument = {
   title?: unknown;
   content?: unknown;
+  color?: unknown;
 };
 
 function mapNote(snapshot: QueryDocumentSnapshot<NoteDocument>): NoteCard {
@@ -25,6 +26,7 @@ function mapNote(snapshot: QueryDocumentSnapshot<NoteDocument>): NoteCard {
     id: snapshot.id,
     title: typeof data.title === "string" ? data.title : "",
     content: typeof data.content === "string" ? data.content : "",
+    color: isNoteColor(data.color) ? data.color : "default",
   };
 }
 

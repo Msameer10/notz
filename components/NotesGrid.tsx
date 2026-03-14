@@ -2,10 +2,13 @@
 
 import Link from "next/link";
 
+import { type NoteColor } from "@/lib/notes";
+
 export type NoteCard = {
   id: string;
   title: string;
   content: string;
+  color: NoteColor;
 };
 
 type NotesGridProps = {
@@ -47,8 +50,8 @@ export default function NotesGrid({ notes, isLoading }: NotesGridProps) {
         <Link
           key={note.id}
           href={`/note/${note.id}`}
-          className="notes-masonry-item block min-w-0 overflow-hidden rounded-xl border p-4 transition hover:shadow-md sm:p-5"
-          style={{ background: "var(--card)", borderColor: "var(--border)" }}
+          data-note-color={note.color}
+          className="note-surface notes-masonry-item block min-w-0 overflow-hidden rounded-xl border p-4 transition hover:shadow-md sm:p-5"
         >
           <div className="min-w-0 text-base font-semibold leading-6 break-words [overflow-wrap:anywhere]">
             {note.title.trim() ? note.title : "Untitled"}

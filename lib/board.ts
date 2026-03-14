@@ -14,7 +14,7 @@ export function boardCol(uid: string) {
 
 export async function createBoardItem(uid: string) {
   const ref = await addDoc(boardCol(uid), {
-    title: "New board item",
+    title: "",
     content: "",
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),

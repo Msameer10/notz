@@ -7,14 +7,27 @@ import { doc, onSnapshot, type DocumentData, type DocumentSnapshot } from "fireb
 
 import { useAuth } from "@/context/AuthContext";
 import { db } from "@/lib/firebase";
-import { removeNote, updateNote } from "@/lib/notes";
+import { NOTE_COLORS, isNoteColor, removeNote, updateNote, type NoteColor } from "@/lib/notes";
 
 type NoteFields = {
   title: string;
   content: string;
+  color: NoteColor;
 };
 
 type SaveState = "idle" | "saving" | "saved" | "error";
+
+const NOTE_COLOR_LABELS: Record<NoteColor, string> = {
+  default: "Default",
+  yellow: "Yellow",
+  orange: "Orange",
+  red: "Red",
+  pink: "Pink",
+  purple: "Purple",
+  blue: "Blue",
+  teal: "Teal",
+  green: "Green",
+};
 
 function readNoteFields(snapshot: DocumentSnapshot<DocumentData>): NoteFields | null {
   if (!snapshot.exists()) {
@@ -26,16 +39,21 @@ function readNoteFields(snapshot: DocumentSnapshot<DocumentData>): NoteFields | 
   return {
     title: typeof data.title === "string" ? data.title : "",
     content: typeof data.content === "string" ? data.content : "",
+    color: isNoteColor(data.color) ? data.color : "default",
   };
 }
 
 function areNoteFieldsEqual(left: NoteFields | null, right: NoteFields | null) {
-  return left?.title === right?.title && left?.content === right?.content;
+  return (
+    left?.title === right?.title &&
+    left?.content === right?.content &&
+    left?.color === right?.color
+  );
 }
 
 function BackButton() {
   return (
-    <Link href="/" className="button-neutral inline-flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors">
+    <Link href="/" className="button-neutral inline-flex items-center gap-2 rounded-lg border px-3 py-2 transition-colors">
       <span aria-hidden="true">{"\u2190"}</span>
       <span>Back</span>
     </Link>
@@ -44,7 +62,7 @@ function BackButton() {
 
 function renderNoteState(message: string, secondaryMessage?: string) {
   return (
-    <div className="min-h-screen p-6 max-w-3xl mx-auto">
+    <div className="mx-auto min-h-screen max-w-3xl p-6">
       <div
         className="mt-16 rounded-2xl border p-8"
         style={{ background: "var(--card)", borderColor: "var(--border)" }}
@@ -69,13 +87,14 @@ export default function NotePage() {
 
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [color, setColor] = useState<NoteColor>("default");
   const [resolvedNoteId, setResolvedNoteId] = useState<string | null>(null);
   const [noteExists, setNoteExists] = useState(false);
   const [saveState, setSaveState] = useState<SaveState>("idle");
 
   const hasHydratedRef = useRef(false);
   const isDirtyRef = useRef(false);
-  const draftRef = useRef<NoteFields>({ title: "", content: "" });
+  const draftRef = useRef<NoteFields>({ title: "", content: "", color: "default" });
   const lastServerSnapshotRef = useRef<NoteFields | null>(null);
   const saveRequestIdRef = useRef(0);
 
@@ -83,15 +102,15 @@ export default function NotePage() {
   const isReady = !isNoteLoading && noteExists;
 
   useEffect(() => {
-    draftRef.current = { title, content };
-  }, [content, title]);
+    draftRef.current = { title, content, color };
+  }, [color, content, title]);
 
   useEffect(() => {
     hasHydratedRef.current = false;
     isDirtyRef.current = false;
     lastServerSnapshotRef.current = null;
     saveRequestIdRef.current = 0;
-    draftRef.current = { title: "", content: "" };
+    draftRef.current = { title: "", content: "", color: "default" };
 
     if (!user) {
       return;
@@ -123,6 +142,7 @@ export default function NotePage() {
         draftRef.current = nextFields;
         setTitle(nextFields.title);
         setContent(nextFields.content);
+        setColor(nextFields.color);
         setSaveState("idle");
         return;
       }
@@ -140,6 +160,7 @@ export default function NotePage() {
         draftRef.current = nextFields;
         setTitle(nextFields.title);
         setContent(nextFields.content);
+        setColor(nextFields.color);
       }
 
       setSaveState("idle");
@@ -184,7 +205,7 @@ export default function NotePage() {
     }, 400);
 
     return () => window.clearTimeout(timeoutId);
-  }, [content, isReady, noteId, title, user]);
+  }, [color, content, isReady, noteId, title, user]);
 
   if (loading) {
     return renderNoteState("Loading note...");
@@ -204,15 +225,22 @@ export default function NotePage() {
 
   const onTitleChange = (nextTitle: string) => {
     isDirtyRef.current = true;
-    draftRef.current = { title: nextTitle, content };
+    draftRef.current = { title: nextTitle, content, color };
     setTitle(nextTitle);
     setSaveState("saving");
   };
 
   const onContentChange = (nextContent: string) => {
     isDirtyRef.current = true;
-    draftRef.current = { title, content: nextContent };
+    draftRef.current = { title, content: nextContent, color };
     setContent(nextContent);
+    setSaveState("saving");
+  };
+
+  const onColorChange = (nextColor: NoteColor) => {
+    isDirtyRef.current = true;
+    draftRef.current = { title, content, color: nextColor };
+    setColor(nextColor);
     setSaveState("saving");
   };
 
@@ -221,42 +249,57 @@ export default function NotePage() {
     router.push("/");
   };
 
-  const saveStatusLabel =
-    saveState === "saving"
-      ? "Saving..."
-      : saveState === "saved"
-        ? "All changes saved"
-        : saveState === "error"
-          ? "Could not save changes"
-          : "Ready";
+  const isVisiblySaving = saveState === "saving" || saveState === "error";
+  const saveStatusLabel = isVisiblySaving ? "Saving" : "Saved";
+  const saveStatusState = isVisiblySaving ? "saving" : "saved";
 
   return (
-    <div className="min-h-screen p-6 max-w-3xl mx-auto">
-      <header className="flex items-center justify-between gap-3">
+    <div className="mx-auto min-h-screen max-w-3xl p-6">
+      <header className="grid grid-cols-[auto_1fr_auto] items-start gap-3">
         <BackButton />
 
-        <div className="flex items-center gap-3">
-          <div className="text-sm" style={{ color: saveState === "error" ? "#ef4444" : "var(--muted)" }}>
-            {saveStatusLabel}
+        <div className="min-w-0 overflow-x-auto py-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="note-toolbar mx-auto flex w-max items-center gap-2 rounded-full border px-3 py-2">
+            {NOTE_COLORS.map((noteColor) => (
+              <button
+                key={noteColor}
+                type="button"
+                title={NOTE_COLOR_LABELS[noteColor]}
+                onClick={() => onColorChange(noteColor)}
+                aria-label={`Set note color to ${NOTE_COLOR_LABELS[noteColor]}`}
+                aria-pressed={color === noteColor}
+                data-note-color={noteColor}
+                className={`note-color-swatch ${color === noteColor ? "is-selected" : ""}`}
+              />
+            ))}
           </div>
-          <button onClick={onDelete} className="button-danger px-3 py-2 rounded-lg border transition-colors">
+        </div>
+
+        <div className="flex items-center justify-end gap-3">
+          <div className="min-w-[9.5rem] text-right text-sm">
+            <span className="note-status" data-state={saveStatusState}>
+              <span className="note-status-dot" aria-hidden="true" />
+              <span>{saveStatusLabel}</span>
+            </span>
+          </div>
+          <button onClick={onDelete} className="button-danger rounded-lg border px-3 py-2 transition-colors">
             Delete
           </button>
         </div>
       </header>
 
-      <div className="mt-6">
+      <div data-note-color={color} className="note-surface mt-6 rounded-2xl border px-5 py-5 sm:px-6 sm:py-6">
         <input
           value={title}
           onChange={(event) => onTitleChange(event.target.value)}
           placeholder="Untitled"
-          className="w-full text-2xl font-bold outline-none bg-transparent"
+          className="w-full bg-transparent text-2xl font-bold outline-none"
         />
         <textarea
           value={content}
           onChange={(event) => onContentChange(event.target.value)}
           placeholder="Write something..."
-          className="editor-scroll mt-4 w-full min-h-[74svh] outline-none bg-transparent resize-none pr-2 sm:min-h-[78svh]"
+          className="editor-scroll mt-4 w-full min-h-[74svh] resize-none bg-transparent pr-2 outline-none sm:min-h-[78svh]"
         />
       </div>
     </div>
