@@ -44,11 +44,7 @@ function readNoteFields(snapshot: DocumentSnapshot<DocumentData>): NoteFields | 
 }
 
 function areNoteFieldsEqual(left: NoteFields | null, right: NoteFields | null) {
-  return (
-    left?.title === right?.title &&
-    left?.content === right?.content &&
-    left?.color === right?.color
-  );
+  return left?.title === right?.title && left?.content === right?.content && left?.color === right?.color;
 }
 
 function BackButton() {
@@ -63,10 +59,7 @@ function BackButton() {
 function renderNoteState(message: string, secondaryMessage?: string) {
   return (
     <div className="mx-auto min-h-screen max-w-3xl p-6">
-      <div
-        className="mt-16 rounded-2xl border p-8"
-        style={{ background: "var(--card)", borderColor: "var(--border)" }}
-      >
+      <div className="mt-16 rounded-2xl border p-8" style={{ background: "var(--card)", borderColor: "var(--border)" }}>
         <BackButton />
         <h1 className="mt-6 text-2xl font-semibold">{message}</h1>
         {secondaryMessage ? (
@@ -91,12 +84,14 @@ export default function NotePage() {
   const [resolvedNoteId, setResolvedNoteId] = useState<string | null>(null);
   const [noteExists, setNoteExists] = useState(false);
   const [saveState, setSaveState] = useState<SaveState>("idle");
+  const [isMobileColorMenuOpen, setIsMobileColorMenuOpen] = useState(false);
 
   const hasHydratedRef = useRef(false);
   const isDirtyRef = useRef(false);
   const draftRef = useRef<NoteFields>({ title: "", content: "", color: "default" });
   const lastServerSnapshotRef = useRef<NoteFields | null>(null);
   const saveRequestIdRef = useRef(0);
+  const mobileColorMenuRef = useRef<HTMLDivElement | null>(null);
 
   const isNoteLoading = resolvedNoteId !== noteId;
   const isReady = !isNoteLoading && noteExists;
@@ -168,6 +163,21 @@ export default function NotePage() {
 
     return () => unsubscribe();
   }, [noteId, user]);
+
+  useEffect(() => {
+    if (!isMobileColorMenuOpen) {
+      return;
+    }
+
+    const handlePointerDown = (event: PointerEvent) => {
+      if (!mobileColorMenuRef.current?.contains(event.target as Node)) {
+        setIsMobileColorMenuOpen(false);
+      }
+    };
+
+    window.addEventListener("pointerdown", handlePointerDown);
+    return () => window.removeEventListener("pointerdown", handlePointerDown);
+  }, [isMobileColorMenuOpen]);
 
   useEffect(() => {
     if (!user || !isReady || !isDirtyRef.current) {
@@ -255,34 +265,73 @@ export default function NotePage() {
 
   return (
     <div className="mx-auto min-h-screen max-w-3xl p-6">
-      <header className="grid grid-cols-[auto_1fr_auto] items-start gap-3">
+      <header className="grid grid-cols-[auto_1fr_auto] items-start gap-2 sm:gap-3">
         <BackButton />
 
-        <div className="min-w-0 overflow-x-auto py-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          <div className="note-toolbar mx-auto flex w-max items-center gap-2 rounded-full border px-3 py-2">
-            {NOTE_COLORS.map((noteColor) => (
+        <div className="min-w-0 py-1">
+          <div className="hidden overflow-x-auto [scrollbar-width:none] sm:block [&::-webkit-scrollbar]:hidden">
+            <div className="note-toolbar mx-auto flex w-max items-center gap-2 rounded-full border px-3 py-2">
+              {NOTE_COLORS.map((noteColor) => (
+                <button
+                  key={noteColor}
+                  type="button"
+                  title={NOTE_COLOR_LABELS[noteColor]}
+                  onClick={() => onColorChange(noteColor)}
+                  aria-label={`Set note color to ${NOTE_COLOR_LABELS[noteColor]}`}
+                  aria-pressed={color === noteColor}
+                  data-note-color={noteColor}
+                  className={`note-color-swatch ${color === noteColor ? "is-selected" : ""}`}
+                />
+              ))}
+            </div>
+          </div>
+
+          <div className="sm:hidden">
+            <div ref={mobileColorMenuRef} className="relative ml-auto w-fit">
               <button
-                key={noteColor}
                 type="button"
-                title={NOTE_COLOR_LABELS[noteColor]}
-                onClick={() => onColorChange(noteColor)}
-                aria-label={`Set note color to ${NOTE_COLOR_LABELS[noteColor]}`}
-                aria-pressed={color === noteColor}
-                data-note-color={noteColor}
-                className={`note-color-swatch ${color === noteColor ? "is-selected" : ""}`}
-              />
-            ))}
+                onClick={() => setIsMobileColorMenuOpen((open) => !open)}
+                className="note-color-trigger note-toolbar inline-flex items-center gap-2 rounded-full border px-2.5 py-1.5"
+                aria-haspopup="menu"
+                aria-expanded={isMobileColorMenuOpen}
+                aria-label="Open note color menu"
+              >
+                <span className="note-color-trigger-dot" data-note-color={color} aria-hidden="true" />
+                <span className="text-sm">Color</span>
+              </button>
+
+              {isMobileColorMenuOpen ? (
+                <div className="note-color-menu absolute right-0 z-20 mt-2 w-44 rounded-2xl border p-2 shadow-xl">
+                  {NOTE_COLORS.map((noteColor) => (
+                    <button
+                      key={noteColor}
+                      type="button"
+                      onClick={() => {
+                        onColorChange(noteColor);
+                        setIsMobileColorMenuOpen(false);
+                      }}
+                      className="note-color-menu-item flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-sm"
+                      aria-pressed={color === noteColor}
+                    >
+                      <span className="note-color-trigger-dot" data-note-color={noteColor} aria-hidden="true" />
+                      <span className="flex-1">{NOTE_COLOR_LABELS[noteColor]}</span>
+                      {color === noteColor ? <span className="note-color-menu-check" aria-hidden="true" /> : null}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+            </div>
           </div>
         </div>
 
-        <div className="flex items-center justify-end gap-3">
-          <div className="min-w-[9.5rem] text-right text-sm">
+        <div className="flex items-center justify-end gap-2 sm:gap-3">
+          <div className="min-w-[1rem] text-right text-sm sm:min-w-[9.5rem]">
             <span className="note-status" data-state={saveStatusState}>
               <span className="note-status-dot" aria-hidden="true" />
-              <span>{saveStatusLabel}</span>
+              <span className="hidden sm:inline">{saveStatusLabel}</span>
             </span>
           </div>
-          <button onClick={onDelete} className="button-danger rounded-lg border px-3 py-2 transition-colors">
+          <button onClick={onDelete} className="button-danger rounded-lg border px-2.5 py-2 transition-colors sm:px-3">
             Delete
           </button>
         </div>

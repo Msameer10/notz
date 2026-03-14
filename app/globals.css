@@ -383,6 +383,22 @@ body {
   background: var(--card);
   border-color: var(--border);
 }
+.note-color-select {
+  color: var(--fg);
+  appearance: none;
+  -webkit-appearance: none;
+  min-width: 5.5rem;
+}
+
+.note-color-select option {
+  color: #0f172a;
+}
+
+@media (max-width: 639px) {
+  .note-status {
+    gap: 0;
+  }
+}
 
 .note-color-swatch {
   appearance: none;
@@ -665,3 +681,81 @@ body {
 
 
 
+
+.note-color-trigger {
+  color: var(--fg);
+}
+
+.note-color-trigger-dot {
+  display: inline-flex;
+  width: 0.95rem;
+  height: 0.95rem;
+  flex: 0 0 0.95rem;
+  border-radius: 999px;
+  border: 1px solid var(--note-swatch-border);
+  background-image: var(--note-default-swatch);
+  background-color: transparent;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.note-color-trigger-dot[data-note-color="yellow"] {
+  background-image: none;
+  background-color: var(--note-yellow-swatch);
+}
+
+.note-color-trigger-dot[data-note-color="orange"] {
+  background-image: none;
+  background-color: var(--note-orange-swatch);
+}
+
+.note-color-trigger-dot[data-note-color="red"] {
+  background-image: none;
+  background-color: var(--note-red-swatch);
+}
+
+.note-color-trigger-dot[data-note-color="pink"] {
+  background-image: none;
+  background-color: var(--note-pink-swatch);
+}
+
+.note-color-trigger-dot[data-note-color="purple"] {
+  background-image: none;
+  background-color: var(--note-purple-swatch);
+}
+
+.note-color-trigger-dot[data-note-color="blue"] {
+  background-image: none;
+  background-color: var(--note-blue-swatch);
+}
+
+.note-color-trigger-dot[data-note-color="teal"] {
+  background-image: none;
+  background-color: var(--note-teal-swatch);
+}
+
+.note-color-trigger-dot[data-note-color="green"] {
+  background-image: none;
+  background-color: var(--note-green-swatch);
+}
+
+.note-color-menu {
+  background: color-mix(in srgb, var(--card) 96%, transparent);
+  border-color: var(--border);
+  backdrop-filter: blur(14px);
+}
+
+.note-color-menu-item {
+  color: var(--fg);
+}
+
+.note-color-menu-item:hover {
+  background: var(--card-2);
+}
+
+.note-color-menu-check {
+  width: 0.38rem;
+  height: 0.38rem;
+  flex: 0 0 0.38rem;
+  border-radius: 999px;
+  background: currentColor;
+}
