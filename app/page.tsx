@@ -71,19 +71,19 @@ export default function Home() {
   const isNotesLoading = loadedNotesUserId !== user.uid;
 
   return (
-    <div className="min-h-screen p-6">
-      <header className="flex items-center justify-between gap-4">
-        <div>
+    <div className="min-h-screen overflow-x-hidden px-4 py-5 sm:p-6">
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
           <h1 className="text-2xl font-bold">Notz</h1>
           <p className="mt-1 text-sm" style={{ color: "var(--muted)" }}>
             Your notes, kept simple.
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <button
             onClick={toggle}
-            className="p-2 rounded-lg border transition hover:scale-105 hover:shadow-md"
+            className="shrink-0 p-2 rounded-lg border transition hover:scale-105 hover:shadow-md"
             style={{
               background: "var(--card)",
               borderColor: "var(--border)",
@@ -97,7 +97,7 @@ export default function Home() {
 
           <button
             onClick={() => setBoardOpen(true)}
-            className="px-3 py-2 rounded-lg border"
+            className="shrink-0 px-3 py-2 rounded-lg border"
             style={{ background: "var(--card)", borderColor: "var(--border)" }}
           >
             Board
@@ -105,7 +105,7 @@ export default function Home() {
 
           <button
             onClick={() => signOut(auth)}
-            className="button-blue px-3 py-2 rounded-lg border transition-colors"
+            className="button-blue shrink-0 px-3 py-2 rounded-lg border transition-colors"
           >
             Logout
           </button>

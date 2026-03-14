@@ -17,7 +17,7 @@ export default function NotesGrid({ notes, isLoading }: NotesGridProps) {
   if (isLoading) {
     return (
       <div
-        className="mt-6 rounded-2xl border p-6"
+        className="mt-6 rounded-2xl border p-5 sm:p-6"
         style={{ background: "var(--card)", borderColor: "var(--border)" }}
       >
         <p className="text-sm" style={{ color: "var(--muted)" }}>
@@ -30,7 +30,7 @@ export default function NotesGrid({ notes, isLoading }: NotesGridProps) {
   if (notes.length === 0) {
     return (
       <div
-        className="mt-6 rounded-2xl border p-8 text-center"
+        className="mt-6 rounded-2xl border p-6 text-center sm:p-8"
         style={{ background: "var(--card)", borderColor: "var(--border)" }}
       >
         <h2 className="text-lg font-semibold">No notes yet</h2>
@@ -42,16 +42,21 @@ export default function NotesGrid({ notes, isLoading }: NotesGridProps) {
   }
 
   return (
-    <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="mt-6 grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-3 sm:gap-4">
       {notes.map((note) => (
         <Link
           key={note.id}
           href={`/note/${note.id}`}
-          className="rounded-xl border p-4 transition hover:shadow-md"
+          className="min-w-0 overflow-hidden rounded-xl border p-4 transition hover:shadow-md sm:p-5"
           style={{ background: "var(--card)", borderColor: "var(--border)" }}
         >
-          <div className="font-semibold truncate">{note.title.trim() ? note.title : "Untitled"}</div>
-          <div className="mt-2 text-sm line-clamp-3" style={{ color: "var(--muted)" }}>
+          <div className="min-w-0 text-base font-semibold leading-6 break-words [overflow-wrap:anywhere]">
+            {note.title.trim() ? note.title : "Untitled"}
+          </div>
+          <div
+            className="mt-2 min-w-0 text-sm leading-6 note-preview"
+            style={{ color: "var(--muted)" }}
+          >
             {note.content.trim() ? note.content : "No content"}
           </div>
         </Link>
