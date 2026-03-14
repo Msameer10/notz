@@ -71,16 +71,16 @@ export default function Home() {
   const isNotesLoading = loadedNotesUserId !== user.uid;
 
   return (
-    <div className="min-h-screen overflow-x-hidden px-4 py-5 sm:p-6">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="min-h-screen overflow-x-hidden px-4 py-5 pb-28 sm:p-6 sm:pb-8">
+      <header className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-3 gap-y-2 sm:flex sm:items-center sm:justify-between">
         <div className="min-w-0">
           <h1 className="text-2xl font-bold">Notz</h1>
-          <p className="mt-1 text-sm" style={{ color: "var(--muted)" }}>
+          <p className="mt-1 max-w-[18rem] text-sm sm:max-w-none" style={{ color: "var(--muted)" }}>
             Your notes, kept simple.
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+        <div className="flex flex-wrap items-center justify-end gap-2 sm:gap-3">
           <button
             onClick={toggle}
             className="shrink-0 p-2 rounded-lg border transition hover:scale-105 hover:shadow-md"
@@ -97,7 +97,7 @@ export default function Home() {
 
           <button
             onClick={() => setBoardOpen(true)}
-            className="shrink-0 px-3 py-2 rounded-lg border"
+            className="shrink-0 rounded-lg border px-2.5 py-2 text-sm sm:px-3 sm:text-base"
             style={{ background: "var(--card)", borderColor: "var(--border)" }}
           >
             Board
@@ -105,7 +105,7 @@ export default function Home() {
 
           <button
             onClick={() => signOut(auth)}
-            className="button-blue shrink-0 px-3 py-2 rounded-lg border transition-colors"
+            className="button-blue shrink-0 rounded-lg border px-2.5 py-2 text-sm transition-colors sm:px-3 sm:text-base"
           >
             Logout
           </button>
@@ -116,13 +116,9 @@ export default function Home() {
 
       <button
         onClick={onAdd}
-        className="fixed bottom-6 left-1/2 -translate-x-1/2 sm:left-auto sm:right-6 sm:translate-x-0 rounded-full px-6 py-3 border transition hover:shadow-lg"
-        style={{
-          background: "var(--card-2)",
-          borderColor: "var(--border)",
-          boxShadow: "var(--shadow)",
-        }}
+        className="button-primary fixed bottom-4 left-4 right-4 z-30 rounded-xl border px-5 py-3 text-base font-semibold transition hover:-translate-y-0.5 sm:bottom-6 sm:left-auto sm:right-6 sm:w-auto sm:min-w-[9.5rem] sm:px-5 sm:py-3"
         title="Add note"
+        aria-label="Add note"
       >
         + Note
       </button>

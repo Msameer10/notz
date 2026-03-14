@@ -42,19 +42,19 @@ export default function NotesGrid({ notes, isLoading }: NotesGridProps) {
   }
 
   return (
-    <div className="mt-6 grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-3 sm:gap-4">
+    <div className="notes-masonry mt-6">
       {notes.map((note) => (
         <Link
           key={note.id}
           href={`/note/${note.id}`}
-          className="min-w-0 overflow-hidden rounded-xl border p-4 transition hover:shadow-md sm:p-5"
+          className="notes-masonry-item block min-w-0 overflow-hidden rounded-xl border p-4 transition hover:shadow-md sm:p-5"
           style={{ background: "var(--card)", borderColor: "var(--border)" }}
         >
           <div className="min-w-0 text-base font-semibold leading-6 break-words [overflow-wrap:anywhere]">
             {note.title.trim() ? note.title : "Untitled"}
           </div>
           <div
-            className="mt-2 min-w-0 text-sm leading-6 note-preview"
+            className="note-preview mt-2 min-w-0 text-sm leading-6"
             style={{ color: "var(--muted)" }}
           >
             {note.content.trim() ? note.content : "No content"}

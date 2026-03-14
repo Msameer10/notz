@@ -249,14 +249,14 @@ export default function NotePage() {
         <input
           value={title}
           onChange={(event) => onTitleChange(event.target.value)}
-          placeholder="Title"
+          placeholder="Untitled"
           className="w-full text-2xl font-bold outline-none bg-transparent"
         />
         <textarea
           value={content}
           onChange={(event) => onContentChange(event.target.value)}
           placeholder="Write something..."
-          className="mt-4 w-full min-h-[60vh] outline-none bg-transparent resize-none"
+          className="editor-scroll mt-4 w-full min-h-[74svh] outline-none bg-transparent resize-none pr-2 sm:min-h-[78svh]"
         />
       </div>
     </div>

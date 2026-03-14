@@ -14,7 +14,7 @@ export function notesCol(uid: string) {
 
 export async function createNote(uid: string) {
   const ref = await addDoc(notesCol(uid), {
-    title: "Untitled",
+    title: "",
     content: "",
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
