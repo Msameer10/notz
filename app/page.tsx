@@ -44,7 +44,7 @@ function mapNote(snapshot: QueryDocumentSnapshot<NoteDocument>): NoteCard {
   };
 }
 
-function getAuthErrorMessage(error: unknown): string {
+function getAuthErrorMessage(error: unknown, action?: AuthAction): string {
   const code = (error as AuthError | undefined)?.code;
 
   switch (code) {
@@ -68,7 +68,17 @@ function getAuthErrorMessage(error: unknown): string {
       return "Your browser blocked the sign-in popup. Allow popups and try again.";
     case "auth/operation-not-allowed":
       return "This sign-in method is not enabled in Firebase yet.";
+    case "auth/unauthorized-domain":
+      return "This domain is not authorized for Firebase sign-in. Add it in Firebase Authentication > Settings > Authorized domains.";
+    case "auth/invalid-api-key":
+      return "Firebase configuration is invalid. Check your NEXT_PUBLIC_FIREBASE_* values.";
+    case "auth/app-not-authorized":
+      return "This Firebase app is not authorized for the configured sign-in provider. Check your Firebase project and OAuth settings.";
     default:
+      if (action === "google") {
+        return "Google sign-in failed. Check the browser console and confirm Google is enabled, the domain is authorized, and your Firebase env vars match the correct project.";
+      }
+
       return "Authentication failed. Try again.";
   }
 }
