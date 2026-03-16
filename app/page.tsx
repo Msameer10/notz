@@ -2,14 +2,12 @@
 
 import {
   GithubAuthProvider,
-  GoogleAuthProvider,
   browserLocalPersistence,
   browserSessionPersistence,
   createUserWithEmailAndPassword,
   setPersistence,
   signInWithEmailAndPassword,
   signInWithPopup,
-  signInWithRedirect,
   signOut,
   type AuthError,
 } from "firebase/auth";
@@ -22,6 +20,7 @@ import NotesGrid, { type NoteCard } from "@/components/NotesGrid";
 import NoticeBoardDrawer from "@/components/NoticeBoardDrawer";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
+import { signInWithGoogle } from "@/lib/auth";
 import { auth } from "@/lib/firebase";
 import { createNote, isNoteColor, notesCol } from "@/lib/notes";
 
@@ -109,50 +108,31 @@ export default function Home() {
       await setAuthSessionPersistence(rememberDevice);
       await operation();
     } catch (error) {
-      setAuthError(getAuthErrorMessage(error));
+      setAuthError(getAuthErrorMessage(error, action));
     } finally {
       setLoadingAction(null);
     }
   };
 
-  const signInWithProvider = async (
-    action: Extract<AuthAction, "google" | "github">,
+  const signInWithProviderPopup = async (
+    action: Extract<AuthAction, "github">,
     rememberDevice: boolean,
-    provider: GoogleAuthProvider | GithubAuthProvider
+    provider: GithubAuthProvider,
   ) => {
-    await runAuthAction(action, rememberDevice, async () => {
-      const shouldUseRedirect = typeof window !== "undefined" && window.matchMedia("(max-width: 640px)").matches;
-
-      if (shouldUseRedirect) {
-        await signInWithRedirect(auth, provider);
-        return;
-      }
-
-      try {
-        await signInWithPopup(auth, provider);
-      } catch (error) {
-        const code = (error as AuthError | undefined)?.code;
-
-        if (code === "auth/popup-blocked") {
-          await signInWithRedirect(auth, provider);
-          return;
-        }
-
-        throw error;
-      }
-    });
+    await runAuthAction(action, rememberDevice, () => signInWithPopup(auth, provider));
   };
 
   const loginWithGoogle = async (rememberDevice: boolean) => {
-    const provider = new GoogleAuthProvider();
-    await signInWithProvider("google", rememberDevice, provider);
+    await runAuthAction("google", rememberDevice, async () => {
+      await signInWithGoogle();
+    });
   };
 
   const loginWithGithub = async (rememberDevice: boolean) => {
     const provider = new GithubAuthProvider();
     provider.addScope("read:user");
     provider.addScope("user:email");
-    await signInWithProvider("github", rememberDevice, provider);
+    await signInWithProviderPopup("github", rememberDevice, provider);
   };
 
   const signInWithEmail = async (email: string, password: string, rememberDevice: boolean) => {
