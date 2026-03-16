@@ -1,10 +1,8 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
-import { onAuthStateChanged, User } from "firebase/auth";
-
-import { handleGoogleRedirectResult } from "@/lib/auth";
 import { auth } from "@/lib/firebase";
+import { onAuthStateChanged, User } from "firebase/auth";
 
 interface AuthContextType {
   user: User | null;
@@ -18,40 +16,20 @@ const AuthContext = createContext<AuthContextType>({
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [authResolved, setAuthResolved] = useState(false);
-  const [redirectResolved, setRedirectResolved] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    let isActive = true;
-
-    const unsubscribe = onAuthStateChanged(auth, (u) => {
-      if (!isActive) {
-        return;
-      }
-
+    return onAuthStateChanged(auth, (u) => {
       setUser(u);
-      setAuthResolved(true);
+      setLoading(false);
     });
-
-    void handleGoogleRedirectResult()
-      .catch((error) => {
-        console.error("Google redirect sign-in failed:", error);
-      })
-      .finally(() => {
-        if (isActive) {
-          setRedirectResolved(true);
-        }
-      });
-
-    return () => {
-      isActive = false;
-      unsubscribe();
-    };
   }, []);
 
-  const loading = !authResolved || !redirectResolved;
-
-  return <AuthContext.Provider value={{ user, loading }}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={{ user, loading }}>
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
 export const useAuth = () => useContext(AuthContext);

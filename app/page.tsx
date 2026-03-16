@@ -2,6 +2,7 @@
 
 import {
   GithubAuthProvider,
+  GoogleAuthProvider,
   browserLocalPersistence,
   browserSessionPersistence,
   createUserWithEmailAndPassword,
@@ -20,7 +21,6 @@ import NotesGrid, { type NoteCard } from "@/components/NotesGrid";
 import NoticeBoardDrawer from "@/components/NoticeBoardDrawer";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
-import { signInWithGoogle } from "@/lib/auth";
 import { auth } from "@/lib/firebase";
 import { createNote, isNoteColor, notesCol } from "@/lib/notes";
 
@@ -67,15 +67,13 @@ function getAuthErrorMessage(error: unknown, action?: AuthAction): string {
       return "Your browser blocked the sign-in popup. Allow popups and try again.";
     case "auth/operation-not-allowed":
       return "This sign-in method is not enabled in Firebase yet.";
-    case "auth/unauthorized-domain":
-      return "This domain is not authorized for Firebase sign-in. Add it in Firebase Authentication > Settings > Authorized domains.";
-    case "auth/invalid-api-key":
-      return "Firebase configuration is invalid. Check your NEXT_PUBLIC_FIREBASE_* values.";
-    case "auth/app-not-authorized":
-      return "This Firebase app is not authorized for the configured sign-in provider. Check your Firebase project and OAuth settings.";
     default:
+      if (action === "github") {
+        return "GitHub sign-in failed. Check the Firebase GitHub provider settings and try again.";
+      }
+
       if (action === "google") {
-        return "Google sign-in failed. Check the browser console and confirm Google is enabled, the domain is authorized, and your Firebase env vars match the correct project.";
+        return "Google sign-in failed. Try again.";
       }
 
       return "Authentication failed. Try again.";
@@ -92,55 +90,70 @@ export default function Home() {
   const [authError, setAuthError] = useState<string | null>(null);
   const [loadingAction, setLoadingAction] = useState<AuthAction | null>(null);
 
-  const setAuthSessionPersistence = async (rememberDevice: boolean) => {
-    await setPersistence(auth, rememberDevice ? browserLocalPersistence : browserSessionPersistence);
-  };
-
   const clearAuthError = () => {
     setAuthError(null);
   };
 
-  const runAuthAction = async (action: AuthAction, rememberDevice: boolean, operation: () => Promise<unknown>) => {
+  const setEmailPersistence = async (rememberDevice: boolean) => {
+    await setPersistence(auth, rememberDevice ? browserLocalPersistence : browserSessionPersistence);
+  };
+
+  const login = async () => {
     setAuthError(null);
-    setLoadingAction(action);
+    setLoadingAction("google");
 
     try {
-      await setAuthSessionPersistence(rememberDevice);
-      await operation();
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
     } catch (error) {
-      setAuthError(getAuthErrorMessage(error, action));
+      setAuthError(getAuthErrorMessage(error, "google"));
     } finally {
       setLoadingAction(null);
     }
   };
 
-  const signInWithProviderPopup = async (
-    action: Extract<AuthAction, "github">,
-    rememberDevice: boolean,
-    provider: GithubAuthProvider,
-  ) => {
-    await runAuthAction(action, rememberDevice, () => signInWithPopup(auth, provider));
-  };
+  const loginWithGithub = async () => {
+    setAuthError(null);
+    setLoadingAction("github");
 
-  const loginWithGoogle = async (rememberDevice: boolean) => {
-    await runAuthAction("google", rememberDevice, async () => {
-      await signInWithGoogle();
-    });
-  };
-
-  const loginWithGithub = async (rememberDevice: boolean) => {
-    const provider = new GithubAuthProvider();
-    provider.addScope("read:user");
-    provider.addScope("user:email");
-    await signInWithProviderPopup("github", rememberDevice, provider);
+    try {
+      const provider = new GithubAuthProvider();
+      provider.addScope("read:user");
+      provider.addScope("user:email");
+      await signInWithPopup(auth, provider);
+    } catch (error) {
+      setAuthError(getAuthErrorMessage(error, "github"));
+    } finally {
+      setLoadingAction(null);
+    }
   };
 
   const signInWithEmail = async (email: string, password: string, rememberDevice: boolean) => {
-    await runAuthAction("email-signin", rememberDevice, () => signInWithEmailAndPassword(auth, email.trim(), password));
+    setAuthError(null);
+    setLoadingAction("email-signin");
+
+    try {
+      await setEmailPersistence(rememberDevice);
+      await signInWithEmailAndPassword(auth, email.trim(), password);
+    } catch (error) {
+      setAuthError(getAuthErrorMessage(error, "email-signin"));
+    } finally {
+      setLoadingAction(null);
+    }
   };
 
   const signUpWithEmail = async (email: string, password: string, rememberDevice: boolean) => {
-    await runAuthAction("email-signup", rememberDevice, () => createUserWithEmailAndPassword(auth, email.trim(), password));
+    setAuthError(null);
+    setLoadingAction("email-signup");
+
+    try {
+      await setEmailPersistence(rememberDevice);
+      await createUserWithEmailAndPassword(auth, email.trim(), password);
+    } catch (error) {
+      setAuthError(getAuthErrorMessage(error, "email-signup"));
+    } finally {
+      setLoadingAction(null);
+    }
   };
 
   useEffect(() => {
@@ -172,7 +185,7 @@ export default function Home() {
         onEmailSignIn={signInWithEmail}
         onEmailSignUp={signUpWithEmail}
         onGithubLogin={loginWithGithub}
-        onGoogleLogin={loginWithGoogle}
+        onLogin={login}
       />
     );
   }
@@ -197,15 +210,16 @@ export default function Home() {
         <div className="flex flex-wrap items-center justify-end gap-2 sm:gap-3">
           <button
             onClick={toggle}
-            className="theme-toggle shrink-0 border"
-            data-theme-state={theme}
+            className="shrink-0 rounded-lg border p-2 transition hover:scale-105 hover:shadow-md"
+            style={{
+              background: "var(--card)",
+              borderColor: "var(--border)",
+              boxShadow: "0 0 12px var(--card-2)",
+            }}
             aria-label="Toggle theme"
             title="Toggle theme"
-            type="button"
           >
-            <span className="theme-toggle-icon" data-theme-state={theme} aria-hidden="true">
-              {theme === "light" ? <Moon size={18} /> : <Sun size={18} />}
-            </span>
+            {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
           </button>
 
           <button
